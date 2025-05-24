@@ -11,6 +11,8 @@ from plotly.subplots import make_subplots
 import streamlit as st
 import numpy as np
 import os
+from datetime import datetime
+import base64
 
 # Configure Streamlit page
 st.set_page_config(
@@ -19,6 +21,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+def get_base64_image(image_path):
+    """Convert image to base64 string"""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
 @st.cache_data
 def load_data():
@@ -166,62 +173,117 @@ def display_summary_stats(index_data, comparator_data):
         if not index_data.empty:
             if len(index_data) == 1:
                 row = index_data.iloc[0]
-                st.write(f"**Hospital:** {row['Hospital']}")
-                st.write(f"**Provider ID:** {row['Provider']}")
-                st.write(f"**IDN:** {row['IDN']}")
+                
+                # Hospital info table
+                info_data = {
+                    "Hospital": row['Hospital'],
+                    "Provider ID": row['Provider'],
+                    "IDN": row['IDN'],
+                    "Staffed Beds": row['Number of Staffed Beds']
+                }
+                
+                # Add location
                 if 'City/State' in row and pd.notna(row['City/State']):
-                    st.write(f"**Location:** {row['City/State']}")
+                    info_data["Location"] = row['City/State']
                 elif 'City' in row and 'State' in row:
                     city = row['City'] if pd.notna(row['City']) else ''
                     state = row['State'] if pd.notna(row['State']) else ''
                     if city or state:
-                        st.write(f"**Location:** {city}, {state}")
-                st.write(f"**Staffed Beds:** {row['Number of Staffed Beds']}")
+                        info_data["Location"] = f"{city}, {state}"
                 
-                st.write("**Key Metrics:**")
+                # Display hospital info as table
+                info_df = pd.DataFrame([info_data]).T
+                info_df.columns = ['']
+                st.table(info_df)
+                
+                # Metrics table
+                st.write("**Key Metrics**")
+                metrics_data = {}
                 if pd.notna(row['Readmission Rate']):
-                    st.write(f"Readmission Rate: {row['Readmission Rate']:.1%}")
+                    metrics_data['Readmission Rate'] = f"{row['Readmission Rate']:.1%}"
                 if pd.notna(row['ALOS']):
-                    st.write(f"Average LOS: {row['ALOS']:.1f} days")
+                    metrics_data['Average LOS'] = f"{row['ALOS']:.1f} days"
                 if pd.notna(row['CMI']):
-                    st.write(f"CMI: {row['CMI']:.2f}")
+                    metrics_data['CMI'] = f"{row['CMI']:.2f}"
                 if pd.notna(row['Normalized Readmission Rate']):
-                    st.write(f"Normalized Readmission Rate: {row['Normalized Readmission Rate']:.1%}")
+                    metrics_data['Normalized Readmission Rate'] = f"{row['Normalized Readmission Rate']:.1%}"
                 if pd.notna(row['Normalized ALOS']):
-                    st.write(f"Normalized ALOS: {row['Normalized ALOS']:.1f} days")
+                    metrics_data['Normalized ALOS'] = f"{row['Normalized ALOS']:.1f} days"
+                
+                if metrics_data:
+                    metrics_df = pd.DataFrame([metrics_data]).T
+                    metrics_df.columns = ['Value']
+                    st.table(metrics_df)
             else:
+                # IDN aggregate data
                 st.write(f"**IDN:** {index_data.iloc[0]['IDN']}")
                 st.write(f"**Number of Hospitals:** {len(index_data)}")
                 
-                st.write("**Aggregate Metrics:**")
+                st.write("**Aggregate Metrics**")
+                metrics_data = {}
                 for metric in ['Readmission Rate', 'ALOS', 'CMI', 'Normalized Readmission Rate', 'Normalized ALOS']:
                     mean_val = index_data[metric].mean()
                     if pd.notna(mean_val):
                         if 'Readmission Rate' in metric:
-                            st.write(f"Avg {metric}: {mean_val:.1%}")
+                            metrics_data[f"Avg {metric}"] = f"{mean_val:.1%}"
                         else:
-                            st.write(f"Avg {metric}: {mean_val:.2f}")
+                            metrics_data[f"Avg {metric}"] = f"{mean_val:.2f}"
+                
+                if metrics_data:
+                    metrics_df = pd.DataFrame([metrics_data]).T
+                    metrics_df.columns = ['Value']
+                    st.table(metrics_df)
     
     with col2:
         st.subheader("Comparator Group")
         st.write(f"**Number of Hospitals:** {len(comparator_data)}")
         
+        # Create distribution table
+        st.write("**Metrics Distribution**")
+        dist_data = []
+        
         for metric in ['Readmission Rate', 'ALOS', 'CMI', 'Normalized Readmission Rate', 'Normalized ALOS']:
             clean_data = comparator_data[metric].dropna()
             if not clean_data.empty:
-                st.write(f"**{metric} Distribution:**")
                 if 'Readmission Rate' in metric:
-                    st.write(f"  Mean: {clean_data.mean():.1%}")
-                    st.write(f"  Median: {clean_data.median():.1%}")
-                    st.write(f"  25th-75th Percentile: {clean_data.quantile(0.25):.1%} - {clean_data.quantile(0.75):.1%}")
+                    dist_data.append({
+                        'Metric': metric,
+                        'Mean': f"{clean_data.mean():.1%}",
+                        'Median': f"{clean_data.median():.1%}",
+                        '25th Percentile': f"{clean_data.quantile(0.25):.1%}",
+                        '75th Percentile': f"{clean_data.quantile(0.75):.1%}"
+                    })
                 else:
-                    st.write(f"  Mean: {clean_data.mean():.2f}")
-                    st.write(f"  Median: {clean_data.median():.2f}")
-                    st.write(f"  25th-75th Percentile: {clean_data.quantile(0.25):.2f} - {clean_data.quantile(0.75):.2f}")
+                    dist_data.append({
+                        'Metric': metric,
+                        'Mean': f"{clean_data.mean():.2f}",
+                        'Median': f"{clean_data.median():.2f}",
+                        '25th Percentile': f"{clean_data.quantile(0.25):.2f}",
+                        '75th Percentile': f"{clean_data.quantile(0.75):.2f}"
+                    })
+        
+        if dist_data:
+            dist_df = pd.DataFrame(dist_data)
+            dist_df = dist_df.set_index('Metric')
+            st.table(dist_df)
 
 def main():
+    # Add logo in sidebar with centered styling and reduced padding
+    logo_html = f"""
+    <style>
+    .sidebar .sidebar-content {{
+        padding-top: 1rem;
+    }}
+    </style>
+    <div style="display: flex; justify-content: center; margin: -1.5rem 0 -1rem 0;">
+        <img src="data:image/png;base64,{get_base64_image("tauspan_logo.png")}" width="125">
+    </div>
+    """
+    st.sidebar.markdown(logo_html, unsafe_allow_html=True)
+    st.sidebar.markdown("---")
+    
     st.title("🏥 Hospital Outcomes Analyzer")
-    st.markdown("### DRG 329-334 Readmission Analysis")
+    st.markdown("### DRG 329-334 LOS and Readmission Analysis")
     
     # Add explanation of normalized metrics
     with st.expander("ℹ️ About Normalized Metrics"):
@@ -281,9 +343,16 @@ def main():
     
     # Comparator selection
     st.sidebar.header("Comparison Group")
+    
+    # Adjust comparison options based on selection mode
+    if selection_mode == "IDN (Health System)":
+        comparison_options = ["All Hospitals", "Same IDN"]
+    else:
+        comparison_options = ["All Hospitals", "Same IDN", "Same State"]
+    
     comparator_type = st.sidebar.radio(
         "Compare to:",
-        ["All Hospitals", "Same IDN", "Same State"]
+        comparison_options
     )
     
     # Get comparator data
@@ -325,30 +394,152 @@ def main():
         st.header("Hospital Data")
         
         # Filter options
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns([1, 2])
         with col1:
-            show_all = st.checkbox("Show all comparator hospitals", value=False)
-        with col2:
-            min_beds = st.number_input("Minimum beds:", min_value=0, value=0)
-        with col3:
-            max_beds = st.number_input("Maximum beds:", min_value=0, value=3000)
+            show_all = st.checkbox("Show all comparator hospitals", value=True)
         
-        # Filter data for table
+        # Initialize display_data
         display_data = comparator_data.copy()
-        if not show_all and not index_data.empty:
-            # Show index hospitals plus top/bottom performers
-            n_show = min(20, len(comparator_data))
-            if selected_metric in comparator_data.columns:
-                sorted_data = comparator_data.sort_values(selected_metric, na_position='last')
-                top_performers = sorted_data.head(n_show//2)
-                bottom_performers = sorted_data.tail(n_show//2)
-                display_data = pd.concat([index_data, top_performers, bottom_performers]).drop_duplicates()
         
-        # Apply bed filters
-        if min_beds > 0:
-            display_data = display_data[display_data['Number of Staffed Beds'] >= min_beds]
-        if max_beds < 3000:
-            display_data = display_data[display_data['Number of Staffed Beds'] <= max_beds]
+        # Show percentage slider when "show all" is unchecked
+        if not show_all and not index_data.empty:
+            with col2:
+                bed_percent = st.slider(
+                    "Bed count similarity (%)",
+                    min_value=5,
+                    max_value=50,
+                    value=5,
+                    step=5,
+                    help="Show hospitals within this percentage of the index hospital's bed count"
+                )
+            
+            # Get index bed count
+            if len(index_data) == 1:
+                index_beds = index_data.iloc[0]['Number of Staffed Beds']
+            else:
+                # For IDN, use average bed count
+                index_beds = index_data['Number of Staffed Beds'].mean()
+            
+            # Calculate bed range based on percentage
+            bed_tolerance = index_beds * (bed_percent / 100)
+            min_bed_threshold = index_beds - bed_tolerance
+            max_bed_threshold = index_beds + bed_tolerance
+            
+            # Filter display data to hospitals within bed range
+            display_data = display_data[
+                (display_data['Number of Staffed Beds'] >= min_bed_threshold) &
+                (display_data['Number of Staffed Beds'] <= max_bed_threshold)
+            ]
+            
+            # Also ensure index hospital(s) are included
+            display_data = pd.concat([index_data, display_data]).drop_duplicates()
+        
+        # Scatter plot - Normalized ALOS vs Normalized Readmission Rate
+        st.header("Normalized Performance Comparison")
+        
+        # Create scatter plot data from display_data (already filtered)
+        scatter_data = display_data[['Provider', 'Hospital', 'Normalized ALOS', 'Normalized Readmission Rate']].copy()
+        scatter_data = scatter_data.dropna(subset=['Normalized ALOS', 'Normalized Readmission Rate'])
+        
+        # Add info about what's being displayed
+        if not show_all and not index_data.empty:
+            st.info(f"📊 Scatter plot and table show hospitals within ±{bed_percent}% of index hospital bed count "
+                   f"({min_bed_threshold:.0f} - {max_bed_threshold:.0f} beds). "
+                   f"Displaying {len(scatter_data)} hospitals with complete normalized data.")
+        elif show_all:
+            st.info(f"📊 Showing all {len(scatter_data)} comparator hospitals with complete normalized data.")
+        
+        if not scatter_data.empty:
+            # Truncate hospital names for labels
+            scatter_data['Label'] = scatter_data['Hospital'].apply(lambda x: x[:20] + '...' if len(str(x)) > 20 else str(x))
+            
+            # Identify index hospital(s)
+            if len(index_data) == 1:
+                index_provider = index_data.iloc[0]['Provider']
+                scatter_data['Is_Index'] = scatter_data['Provider'] == index_provider
+            else:
+                # For IDN selection, mark all hospitals in the IDN
+                index_providers = index_data['Provider'].tolist()
+                scatter_data['Is_Index'] = scatter_data['Provider'].isin(index_providers)
+            
+            # Create the scatter plot
+            fig = go.Figure()
+            
+            # Add comparator hospitals
+            comparator_points = scatter_data[~scatter_data['Is_Index']]
+            if not comparator_points.empty:
+                fig.add_trace(go.Scatter(
+                    x=comparator_points['Normalized ALOS'],
+                    y=comparator_points['Normalized Readmission Rate'],
+                    mode='markers+text',
+                    marker=dict(size=8, color='lightblue', line=dict(width=1, color='darkblue')),
+                    text=comparator_points['Label'],
+                    textposition="top center",
+                    textfont=dict(size=9),
+                    name='Comparator Hospitals',
+                    hovertemplate='<b>%{text}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>'
+                ))
+            
+            # Add index hospital(s) - highlighted
+            index_points = scatter_data[scatter_data['Is_Index']]
+            if not index_points.empty:
+                fig.add_trace(go.Scatter(
+                    x=index_points['Normalized ALOS'],
+                    y=index_points['Normalized Readmission Rate'],
+                    mode='markers+text',
+                    marker=dict(size=15, color='red', symbol='star', line=dict(width=2, color='darkred')),
+                    text=index_points['Label'],
+                    textposition="top center",
+                    textfont=dict(size=11, color='red'),
+                    name='Selected Hospital(s)',
+                    hovertemplate='<b>%{text}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>'
+                ))
+            
+            # Add reference lines for means
+            mean_alos = scatter_data['Normalized ALOS'].mean()
+            mean_readmit = scatter_data['Normalized Readmission Rate'].mean()
+            
+            fig.add_hline(y=mean_readmit, line_dash="dash", line_color="gray", opacity=0.5,
+                         annotation_text=f"Mean Readmission Rate: {mean_readmit:.1%}")
+            fig.add_vline(x=mean_alos, line_dash="dash", line_color="gray", opacity=0.5,
+                         annotation_text=f"Mean ALOS: {mean_alos:.2f}")
+            
+            # Update layout
+            fig.update_layout(
+                title="Normalized ALOS vs Normalized Readmission Rate<br><sub>Lower values indicate better performance when adjusted for case complexity</sub>",
+                xaxis_title="Normalized ALOS (days/CMI)",
+                yaxis_title="Normalized Readmission Rate (%/CMI)",
+                height=600,
+                hovermode='closest',
+                showlegend=True,
+                legend=dict(
+                    yanchor="top",
+                    y=0.99,
+                    xanchor="right",
+                    x=0.99
+                )
+            )
+            
+            # Format y-axis as percentage
+            fig.update_layout(yaxis_tickformat='.1%')
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Add performance quadrant explanation
+            with st.expander("📊 Understanding the Performance Quadrants"):
+                st.markdown("""
+                The scatter plot is divided into four quadrants by the mean values:
+                
+                - **Lower-Left (Best)**: Below average normalized readmission rate AND below average normalized length of stay
+                - **Lower-Right**: Below average normalized readmission rate BUT above average normalized length of stay
+                - **Upper-Left**: Above average normalized readmission rate BUT below average normalized length of stay
+                - **Upper-Right (Worst)**: Above average normalized readmission rate AND above average normalized length of stay
+                
+                **Note**: These are normalized metrics (divided by CMI), so they account for case complexity. 
+                Lower values generally indicate better performance.
+                """)
+        else:
+            st.warning("Insufficient data for scatter plot. Both Normalized ALOS and Normalized Readmission Rate data are required.")
         
         # Format data for display
         available_columns = ['Provider', 'Hospital', 'IDN', 'Number of Staffed Beds', 
@@ -423,6 +614,16 @@ def main():
                 st.metric("States Covered", df['City/State'].str.split(', ').str[-1].nunique())
             else:
                 st.metric("States Covered", "N/A")
+    
+    # Add footer
+    st.markdown("---")
+    current_year = datetime.now().year
+    st.markdown(
+        f'<div style="text-align: center; color: #666; font-size: 0.9em;">'
+        f'Copyright © {current_year} tauSpan Technologies LLC. All rights reserved.'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
 if __name__ == "__main__":
     main()
