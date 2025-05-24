@@ -22,17 +22,281 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for enhanced aesthetics
+st.markdown("""
+<style>
+/* Main container styling */
+.main {
+    padding: 0rem 1rem;
+}
+
+/* Card styling */
+.stMetric {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.stMetric:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+/* Metric value styling */
+div[data-testid="metric-container"] {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+div[data-testid="metric-container"]:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+div[data-testid="metric-container"] > div[data-testid="metric-value"] {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1E88E5;
+}
+
+/* Headers styling */
+h1 {
+    color: #1F2937;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    color: #374151;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+h3 {
+    color: #4B5563;
+    font-weight: 600;
+}
+
+/* Selectbox styling */
+div[data-baseweb="select"] {
+    border-radius: 8px;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+div[data-baseweb="select"] > div:hover {
+    border-color: #1E88E5;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.1);
+}
+
+/* Button styling */
+.stButton > button {
+    background-color: #1E88E5;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stButton > button:hover {
+    background-color: #1976D2;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Download button styling */
+.stDownloadButton > button {
+    background-color: #059669;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stDownloadButton > button:hover {
+    background-color: #047857;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Radio button styling */
+div[role="radiogroup"] {
+    background-color: #F9FAFB;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+}
+
+/* Checkbox styling */
+.stCheckbox {
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.stCheckbox:hover {
+    background-color: #F3F4F6;
+}
+
+/* Table styling */
+.stDataFrame {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stTable {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Expander styling */
+.streamlit-expanderHeader {
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    font-weight: 500;
+}
+
+.streamlit-expanderHeader:hover {
+    background-color: #E5E7EB;
+}
+
+/* Info and warning boxes */
+.stAlert {
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+/* Sidebar styling */
+section[data-testid="stSidebar"] {
+    background-color: #F9FAFB;
+    border-right: 1px solid #E5E7EB;
+}
+
+section[data-testid="stSidebar"] .stRadio > label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+/* Plotly chart styling */
+.js-plotly-plot {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Column gaps */
+.row-widget.stHorizontal {
+    gap: 1rem;
+}
+
+/* Footer styling */
+.footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #E5E7EB;
+}
+
+/* Loading spinner */
+.stSpinner > div {
+    border-color: #1E88E5;
+}
+
+/* Metric label styling */
+div[data-testid="metric-container"] label {
+    color: #6B7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Success/Error message styling */
+.stSuccess, .stError, .stWarning, .stInfo {
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+/* Tabs styling */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    padding: 0.25rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Slider styling */
+.stSlider > div > div {
+    background-color: #E5E7EB;
+}
+
+.stSlider > div > div > div {
+    background-color: #1E88E5;
+}
+
+/* Caption styling */
+.caption {
+    color: #6B7280;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Custom container */
+.custom-container {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
 def get_base64_image(image_path):
     """Convert image to base64 string"""
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data():
     """Load and clean the hospital data"""
     data_file = "Readmission CMI-LOS-DRG 329-334 2022.xlsx"
     if os.path.exists(data_file):
-        df = pd.read_excel(data_file)
+        with st.spinner("⏳ Loading hospital data..."):
+            df = pd.read_excel(data_file)
         
         # Clean the data
         df['CMI'] = pd.to_numeric(df['CMI'], errors='coerce')
@@ -92,24 +356,66 @@ def create_metric_chart(data, metric, title_suffix=""):
         st.warning(f"No data available for {metric}")
         return None
     
-    # Create histogram
+    # Create histogram with enhanced styling
     fig = px.histogram(
         x=clean_data,
         nbins=30,
-        title=f'{metric} Distribution - {title_suffix}',
-        labels={'x': metric, 'y': 'Number of Hospitals'}
+        title=f'<b>{metric} Distribution</b><br><sup style="color: #6B7280">{title_suffix}</sup>',
+        labels={'x': metric, 'y': 'Number of Hospitals'},
+        color_discrete_sequence=['#60A5FA']  # Light blue color
     )
     
     # Add statistics lines
     mean_val = clean_data.mean()
     median_val = clean_data.median()
     
-    fig.add_vline(x=mean_val, line_dash="dash", line_color="red", 
-                  annotation_text=f"Mean: {mean_val:.2f}")
-    fig.add_vline(x=median_val, line_dash="dash", line_color="blue", 
-                  annotation_text=f"Median: {median_val:.2f}")
+    fig.add_vline(
+        x=mean_val, 
+        line_dash="dash", 
+        line_color="#EF4444",  # Red
+        line_width=2,
+        annotation_text=f"Mean: {mean_val:.2f}",
+        annotation_position="top right",
+        annotation_font_color="#EF4444"
+    )
+    fig.add_vline(
+        x=median_val, 
+        line_dash="dash", 
+        line_color="#10B981",  # Green
+        line_width=2,
+        annotation_text=f"Median: {median_val:.2f}",
+        annotation_position="top left",
+        annotation_font_color="#10B981"
+    )
     
-    fig.update_layout(height=400)
+    # Update layout with enhanced styling
+    fig.update_layout(
+        height=400,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="sans-serif", size=12, color="#374151"),
+        title_font_size=16,
+        xaxis=dict(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor='#E5E7EB',
+            zeroline=False
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor='#E5E7EB',
+            zeroline=False
+        ),
+        margin=dict(l=40, r=40, t=60, b=40),
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="sans-serif",
+            bordercolor="#E5E7EB"
+        )
+    )
+    
     return fig
 
 def create_comparison_chart(index_data, comparator_data, metric):
@@ -137,29 +443,110 @@ def create_comparison_chart(index_data, comparator_data, metric):
     # Calculate percentile
     percentile = (comp_data < index_value).mean() * 100
     
+    # Determine performance color based on metric type and percentile
+    if "Readmission" in metric or "ALOS" in metric:
+        # Lower is better for these metrics
+        if percentile < 25:
+            perf_color = "#10B981"  # Green - Good performance
+        elif percentile < 75:
+            perf_color = "#F59E0B"  # Yellow - Average
+        else:
+            perf_color = "#EF4444"  # Red - Poor performance
+    else:
+        # Higher might be better (CMI)
+        perf_color = "#1E88E5"  # Blue - Neutral
+    
     # Create box plot
     fig = go.Figure()
     
-    # Add box plot for comparator
+    # Add box plot for comparator with enhanced styling
     fig.add_trace(go.Box(
         y=comp_data,
         name="Comparator Group",
-        boxpoints='outliers'
+        boxpoints='outliers',
+        fillcolor='#E0E7FF',
+        line=dict(color='#4F46E5', width=2),
+        marker=dict(
+            color='#6366F1',
+            size=4,
+            line=dict(width=1, color='#4F46E5')
+        )
     ))
     
-    # Add point for index hospital/IDN
+    # Add point for index hospital/IDN with dynamic color
     fig.add_trace(go.Scatter(
         x=[0],
         y=[index_value],
-        mode='markers',
-        marker=dict(size=15, color='red', symbol='star'),
-        name=f'{index_label} ({percentile:.1f}th percentile)'
+        mode='markers+text',
+        marker=dict(
+            size=20, 
+            color=perf_color, 
+            symbol='star',
+            line=dict(width=2, color='white')
+        ),
+        text=[f'{percentile:.0f}%ile'],
+        textposition='middle right',
+        textfont=dict(size=14, color=perf_color, family='sans-serif', weight=600),
+        name=f'{index_label}',
+        showlegend=True
     ))
     
+    # Update layout with enhanced styling
     fig.update_layout(
-        title=f'{metric} Comparison',
+        title=f'<b>{metric} Comparison</b><br><sup style="color: #6B7280">{index_label} vs Comparator Group</sup>',
         yaxis_title=metric,
-        height=400
+        height=400,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="sans-serif", size=12, color="#374151"),
+        title_font_size=16,
+        xaxis=dict(
+            showticklabels=False,
+            showgrid=False,
+            zeroline=False
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor='#E5E7EB',
+            zeroline=False
+        ),
+        margin=dict(l=40, r=40, t=80, b=40),
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="sans-serif",
+            bordercolor="#E5E7EB"
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            bgcolor='rgba(255,255,255,0.8)',
+            bordercolor='#E5E7EB',
+            borderwidth=1
+        )
+    )
+    
+    # Add percentile annotation
+    fig.add_annotation(
+        x=0,
+        y=index_value,
+        text=f"<b>{percentile:.0f}th percentile</b>",
+        showarrow=True,
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor=perf_color,
+        ax=50,
+        ay=-30,
+        bgcolor='white',
+        bordercolor=perf_color,
+        borderwidth=2,
+        borderpad=4,
+        font=dict(size=12, color=perf_color)
     )
     
     return fig
@@ -169,7 +556,7 @@ def display_summary_stats(index_data, comparator_data):
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("Index Hospital/IDN")
+        st.subheader("🏥 Index Hospital/IDN")
         if not index_data.empty:
             if len(index_data) == 1:
                 row = index_data.iloc[0]
@@ -235,7 +622,7 @@ def display_summary_stats(index_data, comparator_data):
                     st.table(metrics_df)
     
     with col2:
-        st.subheader("Comparator Group")
+        st.subheader("📈 Comparator Group")
         st.write(f"**Number of Hospitals:** {len(comparator_data)}")
         
         # Create distribution table
@@ -282,11 +669,18 @@ def main():
     st.sidebar.markdown(logo_html, unsafe_allow_html=True)
     st.sidebar.markdown("---")
     
-    st.title("🏥 Hospital Outcomes Analyzer")
-    st.markdown("### DRG 329-334 LOS and Readmission Analysis")
+    # Main title with enhanced styling
+    st.markdown("""
+    <h1 style='text-align: center; color: #1F2937; margin-bottom: 0;'>
+        🏥 Hospital Outcomes Analyzer
+    </h1>
+    <p style='text-align: center; color: #6B7280; font-size: 1.1rem; margin-top: 0.5rem;'>
+        DRG 329-334 Joint Replacement Procedures • 2022 Analysis
+    </p>
+    """, unsafe_allow_html=True)
     
-    # Add explanation of normalized metrics
-    with st.expander("ℹ️ About Normalized Metrics"):
+    # Add explanation of normalized metrics with enhanced styling
+    with st.expander("ℹ️ **About Normalized Metrics** - Click to learn more"):
         st.markdown("""
         **Normalized metrics adjust for case complexity using Case Mix Index (CMI):**
         
@@ -305,8 +699,13 @@ def main():
     if df is None:
         st.stop()
     
-    # Sidebar for selections
-    st.sidebar.header("Hospital Selection")
+    # Show success toast on first load
+    if 'data_loaded' not in st.session_state:
+        st.session_state.data_loaded = True
+        st.toast("✅ Hospital data loaded successfully!", icon='✅')
+    
+    # Sidebar for selections with icon
+    st.sidebar.markdown("### 🏥 Hospital Selection")
     
     # Selection mode
     selection_mode = st.sidebar.radio(
@@ -341,8 +740,8 @@ def main():
         if selected_idn:
             index_data = df[df['IDN'] == selected_idn]
     
-    # Comparator selection
-    st.sidebar.header("Comparison Group")
+    # Comparator selection with icon
+    st.sidebar.markdown("### 📊 Comparison Group")
     
     # Adjust comparison options based on selection mode
     if selection_mode == "IDN (Health System)":
@@ -360,12 +759,20 @@ def main():
     
     # Main content
     if not index_data.empty:
-        # Summary statistics
-        st.header("Summary Statistics")
+        # Summary statistics with enhanced header
+        st.markdown("""
+        <h2 style='color: #1F2937; border-bottom: 3px solid #1E88E5; padding-bottom: 0.5rem; margin-bottom: 1.5rem;'>
+            📊 Summary Statistics
+        </h2>
+        """, unsafe_allow_html=True)
         display_summary_stats(index_data, comparator_data)
         
-        # Metric selection
-        st.header("Analysis & Charts")
+        # Metric selection with enhanced header
+        st.markdown("""
+        <h2 style='color: #1F2937; border-bottom: 3px solid #1E88E5; padding-bottom: 0.5rem; margin-bottom: 1.5rem;'>
+            📈 Analysis & Charts
+        </h2>
+        """, unsafe_allow_html=True)
         col1, col2 = st.columns([1, 2])
         
         with col1:
@@ -378,20 +785,26 @@ def main():
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("Distribution")
-            title_suffix = f"{len(comparator_data)} hospitals"
-            chart = create_metric_chart(comparator_data, selected_metric, title_suffix)
-            if chart:
-                st.plotly_chart(chart, use_container_width=True)
+            st.subheader("📊 Distribution")
+            with st.spinner("Generating distribution chart..."):
+                title_suffix = f"{len(comparator_data)} hospitals"
+                chart = create_metric_chart(comparator_data, selected_metric, title_suffix)
+                if chart:
+                    st.plotly_chart(chart, use_container_width=True)
         
         with col2:
-            st.subheader("Comparison")
-            comp_chart = create_comparison_chart(index_data, comparator_data, selected_metric)
-            if comp_chart:
-                st.plotly_chart(comp_chart, use_container_width=True)
+            st.subheader("📈 Comparison")
+            with st.spinner("Generating comparison chart..."):
+                comp_chart = create_comparison_chart(index_data, comparator_data, selected_metric)
+                if comp_chart:
+                    st.plotly_chart(comp_chart, use_container_width=True)
         
-        # Data table
-        st.header("Hospital Data")
+        # Data table with enhanced header
+        st.markdown("""
+        <h2 style='color: #1F2937; border-bottom: 3px solid #1E88E5; padding-bottom: 0.5rem; margin-bottom: 1.5rem;'>
+            📋 Hospital Data
+        </h2>
+        """, unsafe_allow_html=True)
         
         # Filter options
         col1, col2 = st.columns([1, 2])
@@ -426,16 +839,17 @@ def main():
             max_bed_threshold = index_beds + bed_tolerance
             
             # Filter display data to hospitals within bed range
-            display_data = display_data[
-                (display_data['Number of Staffed Beds'] >= min_bed_threshold) &
-                (display_data['Number of Staffed Beds'] <= max_bed_threshold)
-            ]
-            
-            # Also ensure index hospital(s) are included
-            display_data = pd.concat([index_data, display_data]).drop_duplicates()
+            with st.spinner(f"Filtering hospitals within ±{bed_percent}% bed size..."):
+                display_data = display_data[
+                    (display_data['Number of Staffed Beds'] >= min_bed_threshold) &
+                    (display_data['Number of Staffed Beds'] <= max_bed_threshold)
+                ]
+                
+                # Also ensure index hospital(s) are included
+                display_data = pd.concat([index_data, display_data]).drop_duplicates()
         
         # Scatter plot - Normalized ALOS vs Normalized Readmission Rate
-        st.header("Normalized Performance Comparison")
+        st.header("📊 Normalized Performance Comparison")
         
         # Create scatter plot data from display_data (already filtered)
         scatter_data = display_data[['Provider', 'Hospital', 'Normalized ALOS', 'Normalized Readmission Rate']].copy()
@@ -472,10 +886,15 @@ def main():
                     x=comparator_points['Normalized ALOS'],
                     y=comparator_points['Normalized Readmission Rate'],
                     mode='markers+text',
-                    marker=dict(size=8, color='lightblue', line=dict(width=1, color='darkblue')),
+                    marker=dict(
+                        size=10,
+                        color='#60A5FA',  # Light blue
+                        line=dict(width=1.5, color='#2563EB'),  # Darker blue border
+                        opacity=0.8
+                    ),
                     text=comparator_points['Label'],
                     textposition="top center",
-                    textfont=dict(size=9),
+                    textfont=dict(size=9, color='#4B5563'),
                     name='Comparator Hospitals',
                     hovertemplate='<b>%{text}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>'
                 ))
@@ -487,10 +906,15 @@ def main():
                     x=index_points['Normalized ALOS'],
                     y=index_points['Normalized Readmission Rate'],
                     mode='markers+text',
-                    marker=dict(size=15, color='red', symbol='star', line=dict(width=2, color='darkred')),
+                    marker=dict(
+                        size=20,
+                        color='#F59E0B',  # Amber
+                        symbol='star',
+                        line=dict(width=2, color='white')
+                    ),
                     text=index_points['Label'],
                     textposition="top center",
-                    textfont=dict(size=11, color='red'),
+                    textfont=dict(size=12, color='#D97706', weight=600),
                     name='Selected Hospital(s)',
                     hovertemplate='<b>%{text}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>'
                 ))
@@ -499,25 +923,74 @@ def main():
             mean_alos = scatter_data['Normalized ALOS'].mean()
             mean_readmit = scatter_data['Normalized Readmission Rate'].mean()
             
-            fig.add_hline(y=mean_readmit, line_dash="dash", line_color="gray", opacity=0.5,
-                         annotation_text=f"Mean Readmission Rate: {mean_readmit:.1%}")
-            fig.add_vline(x=mean_alos, line_dash="dash", line_color="gray", opacity=0.5,
-                         annotation_text=f"Mean ALOS: {mean_alos:.2f}")
+            # Add quadrant shading
+            fig.add_hrect(
+                y0=0, y1=mean_readmit,
+                x0=0, x1=mean_alos,
+                fillcolor="#10B981", opacity=0.1,
+                layer="below", line_width=0
+            )
             
-            # Update layout
+            fig.add_hline(
+                y=mean_readmit,
+                line_dash="dot",
+                line_color="#6B7280",
+                opacity=0.7,
+                line_width=2,
+                annotation_text=f"Mean: {mean_readmit:.1%}",
+                annotation_position="right",
+                annotation_font=dict(color="#6B7280", size=11)
+            )
+            fig.add_vline(
+                x=mean_alos,
+                line_dash="dot",
+                line_color="#6B7280",
+                opacity=0.7,
+                line_width=2,
+                annotation_text=f"Mean: {mean_alos:.2f}",
+                annotation_position="top",
+                annotation_font=dict(color="#6B7280", size=11)
+            )
+            
+            # Update layout with enhanced styling
             fig.update_layout(
-                title="Normalized ALOS vs Normalized Readmission Rate<br><sub>Lower values indicate better performance when adjusted for case complexity</sub>",
-                xaxis_title="Normalized ALOS (days/CMI)",
-                yaxis_title="Normalized Readmission Rate (%/CMI)",
-                height=600,
+                title=dict(
+                    text="<b>Normalized ALOS vs Normalized Readmission Rate</b><br><sup style='color: #6B7280'>Lower values indicate better performance when adjusted for case complexity</sup>",
+                    font=dict(size=18)
+                ),
+                xaxis_title="<b>Normalized ALOS</b> (days/CMI)",
+                yaxis_title="<b>Normalized Readmission Rate</b> (%/CMI)",
+                height=650,
                 hovermode='closest',
                 showlegend=True,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(family="sans-serif", size=12, color="#374151"),
+                xaxis=dict(
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='#E5E7EB',
+                    zeroline=False,
+                    tickfont=dict(size=11)
+                ),
+                yaxis=dict(
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='#E5E7EB',
+                    zeroline=False,
+                    tickfont=dict(size=11)
+                ),
                 legend=dict(
                     yanchor="top",
                     y=0.99,
                     xanchor="right",
-                    x=0.99
-                )
+                    x=0.99,
+                    bgcolor='rgba(255,255,255,0.9)',
+                    bordercolor='#E5E7EB',
+                    borderwidth=1,
+                    font=dict(size=12)
+                ),
+                margin=dict(l=60, r=40, t=80, b=60)
             )
             
             # Format y-axis as percentage
@@ -572,8 +1045,12 @@ def main():
         
         st.dataframe(formatted_data, use_container_width=True, height=400)
         
-        # Export functionality
-        st.header("Export Data")
+        # Export functionality with enhanced header
+        st.markdown("""
+        <h2 style='color: #1F2937; border-bottom: 3px solid #1E88E5; padding-bottom: 0.5rem; margin-bottom: 1.5rem;'>
+            💾 Export Data
+        </h2>
+        """, unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         
         with col1:
@@ -597,33 +1074,93 @@ def main():
                 )
     
     else:
-        st.info("👈 Please select a hospital or IDN from the sidebar to begin analysis")
+        # Welcome message with enhanced styling
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); 
+                    padding: 2rem; 
+                    border-radius: 12px; 
+                    text-align: center;
+                    border: 1px solid #C7D2FE;'>
+            <h2 style='color: #4338CA; margin-bottom: 1rem;'>👋 Welcome to Hospital Outcomes Analyzer</h2>
+            <p style='color: #4B5563; font-size: 1.1rem;'>
+                Select a hospital or health system from the sidebar to begin your analysis.
+            </p>
+            <p style='color: #6B7280; font-size: 0.95rem; margin-top: 0.5rem;'>
+                This tool analyzes readmission rates and length of stay for joint replacement procedures.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Show data overview
-        st.header("Dataset Overview")
-        col1, col2, col3 = st.columns(3)
+        st.header("📊 Dataset Overview")
+        
+        # Create overview container
+        st.markdown('<div class="custom-container">', unsafe_allow_html=True)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("Total Hospitals", len(df))
+            st.metric(
+                label="Total Hospitals", 
+                value=f"{len(df):,}",
+                delta=None,
+                help="Total number of hospitals in the dataset"
+            )
         with col2:
-            st.metric("Total IDNs", df['IDN'].nunique())
+            st.metric(
+                label="Health Systems", 
+                value=f"{df['IDN'].nunique():,}",
+                delta=None,
+                help="Total number of Integrated Delivery Networks (IDNs)"
+            )
         with col3:
             if 'State' in df.columns:
-                st.metric("States Covered", df['State'].nunique())
+                states = df['State'].nunique()
             elif 'City/State' in df.columns:
-                st.metric("States Covered", df['City/State'].str.split(', ').str[-1].nunique())
+                states = df['City/State'].str.split(', ').str[-1].nunique()
             else:
-                st.metric("States Covered", "N/A")
+                states = "N/A"
+            st.metric(
+                label="States Covered", 
+                value=states,
+                delta=None,
+                help="Geographic coverage across US states"
+            )
+        with col4:
+            total_discharges = df['Total Discharges'].sum() if 'Total Discharges' in df.columns else None
+            if total_discharges:
+                st.metric(
+                    label="Total Procedures", 
+                    value=f"{total_discharges:,}",
+                    delta=None,
+                    help="Total DRG 329-334 procedures in 2022"
+                )
+            else:
+                avg_beds = df['Number of Staffed Beds'].mean()
+                st.metric(
+                    label="Avg Bed Size", 
+                    value=f"{avg_beds:.0f}",
+                    delta=None,
+                    help="Average hospital bed capacity"
+                )
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Add footer
-    st.markdown("---")
-    current_year = datetime.now().year
-    st.markdown(
-        f'<div style="text-align: center; color: #666; font-size: 0.9em;">'
-        f'Copyright © {current_year} tauSpan Technologies LLC. All rights reserved.'
-        f'</div>',
-        unsafe_allow_html=True
-    )
+    # Add enhanced footer
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='background: linear-gradient(to right, #F3F4F6, #E5E7EB); 
+                padding: 2rem 0; 
+                margin: 0 -1rem; 
+                text-align: center;
+                border-top: 2px solid #E5E7EB;'>
+        <img src="data:image/png;base64,{}" width="80" style="margin-bottom: 0.5rem;">
+        <p style='color: #4B5563; font-size: 0.9rem; margin: 0;'>
+            Copyright © {} tauSpan Technologies LLC. All rights reserved.
+        </p>
+        <p style='color: #6B7280; font-size: 0.8rem; margin-top: 0.5rem;'>
+            Built with ❤️ for healthcare analytics
+        </p>
+    </div>
+    """.format(get_base64_image("tauspan_logo.png"), datetime.now().year), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
