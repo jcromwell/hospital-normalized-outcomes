@@ -1,0 +1,6 @@
+include *.xlsx
+include *.txt
+include *.md
+include *.sh
+include *.command
+recursive-include * *.xlsx
