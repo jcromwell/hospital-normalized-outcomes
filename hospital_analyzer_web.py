@@ -171,6 +171,19 @@ div[role="radiogroup"] {
     overflow: hidden;
 }
 
+/* Reduce table font size */
+.stTable table {
+    font-size: 12px;
+}
+
+.stTable th {
+    font-size: 12px;
+}
+
+.stTable td {
+    font-size: 12px;
+}
+
 /* Expander styling */
 .streamlit-expanderHeader {
     background-color: #F3F4F6;
@@ -675,7 +688,7 @@ def main():
         🏥 Hospital Outcomes Analyzer
     </h1>
     <p style='text-align: center; color: #6B7280; font-size: 1.1rem; margin-top: 0.5rem;'>
-        DRG 329-334 Joint Replacement Procedures • 2022 Analysis
+        DRG 329-334 Intestinal Resection Procedures • 2022 Analysis
     </p>
     """, unsafe_allow_html=True)
     
@@ -822,7 +835,7 @@ def main():
                     min_value=1,
                     max_value=75,
                     value=5,
-                    step=5,
+                    step=1,
                     help="Show hospitals within this percentage of the index hospital's bed count"
                 )
             
@@ -1043,7 +1056,7 @@ def main():
                     lambda x: f"{x:.2f}" if pd.notna(x) else "N/A"
                 )
         
-        st.dataframe(formatted_data, use_container_width=True, height=400)
+        st.table(formatted_data)
         
         # Export functionality with enhanced header
         st.markdown("""
