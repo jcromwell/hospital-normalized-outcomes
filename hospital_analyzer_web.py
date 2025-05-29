@@ -809,7 +809,7 @@ def main():
         # Filter options
         col1, col2 = st.columns([1, 2])
         with col1:
-            show_all = st.checkbox("Show all comparator hospitals", value=True)
+            show_all = st.checkbox("Show all comparator hospitals", value=False)
         
         # Initialize display_data
         display_data = comparator_data.copy()
@@ -819,8 +819,8 @@ def main():
             with col2:
                 bed_percent = st.slider(
                     "Bed count similarity (%)",
-                    min_value=5,
-                    max_value=50,
+                    min_value=1,
+                    max_value=75,
                     value=5,
                     step=5,
                     help="Show hospitals within this percentage of the index hospital's bed count"
