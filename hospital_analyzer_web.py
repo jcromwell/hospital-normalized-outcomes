@@ -1109,7 +1109,7 @@ def main():
         
         # Create overview container
         st.markdown('<div class="custom-container">', unsafe_allow_html=True)
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         
         with col1:
             st.metric(
@@ -1138,23 +1138,6 @@ def main():
                 delta=None,
                 help="Geographic coverage across US states"
             )
-        with col4:
-            total_discharges = df['Number of Discharges'].sum() if 'Number of Discharges' in df.columns else None
-            if total_discharges:
-                st.metric(
-                    label="Total Procedures", 
-                    value=f"{total_discharges:,}",
-                    delta=None,
-                    help="Total DRG 329-334 procedures in 2022"
-                )
-            else:
-                avg_beds = df['Number of Staffed Beds'].mean()
-                st.metric(
-                    label="Avg Bed Size", 
-                    value=f"{avg_beds:.0f}",
-                    delta=None,
-                    help="Average hospital bed capacity"
-                )
         st.markdown('</div>', unsafe_allow_html=True)
     
     # Add enhanced footer
