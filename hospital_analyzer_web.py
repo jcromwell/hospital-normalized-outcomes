@@ -830,32 +830,32 @@ def main():
         # Show percentage slider when "show all" is unchecked
         if not show_all and not index_data.empty:
             with col2:
-                bed_percent = st.slider(
-                    "Bed count similarity (%)",
+                claims_percent = st.slider(
+                    "Total procedures similarity (%)",
                     min_value=1,
                     max_value=75,
                     value=5,
                     step=1,
-                    help="Show hospitals within this percentage of the index hospital's bed count"
+                    help="Show hospitals within this percentage of the index hospital's total procedures (Medicare Total Claims)"
                 )
             
-            # Get index bed count
+            # Get index Medicare Total Claims
             if len(index_data) == 1:
-                index_beds = index_data.iloc[0]['Number of Staffed Beds']
+                index_claims = index_data.iloc[0]['Medicare Total Claims']
             else:
-                # For IDN, use average bed count
-                index_beds = index_data['Number of Staffed Beds'].mean()
+                # For IDN, use average Medicare Total Claims
+                index_claims = index_data['Medicare Total Claims'].mean()
             
-            # Calculate bed range based on percentage
-            bed_tolerance = index_beds * (bed_percent / 100)
-            min_bed_threshold = index_beds - bed_tolerance
-            max_bed_threshold = index_beds + bed_tolerance
+            # Calculate claims range based on percentage
+            claims_tolerance = index_claims * (claims_percent / 100)
+            min_claims_threshold = index_claims - claims_tolerance
+            max_claims_threshold = index_claims + claims_tolerance
             
-            # Filter display data to hospitals within bed range
-            with st.spinner(f"Filtering hospitals within ±{bed_percent}% bed size..."):
+            # Filter display data to hospitals within claims range
+            with st.spinner(f"Filtering hospitals within ±{claims_percent}% total procedures..."):
                 display_data = display_data[
-                    (display_data['Number of Staffed Beds'] >= min_bed_threshold) &
-                    (display_data['Number of Staffed Beds'] <= max_bed_threshold)
+                    (display_data['Medicare Total Claims'] >= min_claims_threshold) &
+                    (display_data['Medicare Total Claims'] <= max_claims_threshold)
                 ]
                 
                 # Also ensure index hospital(s) are included
@@ -870,8 +870,8 @@ def main():
         
         # Add info about what's being displayed
         if not show_all and not index_data.empty:
-            st.info(f"📊 Scatter plot and table show hospitals within ±{bed_percent}% of index hospital bed count "
-                   f"({min_bed_threshold:.0f} - {max_bed_threshold:.0f} beds). "
+            st.info(f"📊 Scatter plot and table show hospitals within ±{claims_percent}% of index hospital total procedures "
+                   f"({min_claims_threshold:.0f} - {max_claims_threshold:.0f} procedures). "
                    f"Displaying {len(scatter_data)} hospitals with complete normalized data.")
         elif show_all:
             st.info(f"📊 Showing all {len(scatter_data)} comparator hospitals with complete normalized data.")
@@ -1099,7 +1099,7 @@ def main():
                 Select a hospital or health system from the sidebar to begin your analysis.
             </p>
             <p style='color: #6B7280; font-size: 0.95rem; margin-top: 0.5rem;'>
-                This tool analyzes readmission rates and length of stay for joint replacement procedures.
+                This tool analyzes readmission rates and length of stay for intestinal resection procedures.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -1139,7 +1139,7 @@ def main():
                 help="Geographic coverage across US states"
             )
         with col4:
-            total_discharges = df['Total Discharges'].sum() if 'Total Discharges' in df.columns else None
+            total_discharges = df['Number of Discharges'].sum() if 'Number of Discharges' in df.columns else None
             if total_discharges:
                 st.metric(
                     label="Total Procedures", 
