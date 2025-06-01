@@ -1,0 +1,11 @@
+hospital_web_env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git/
+.gitignore
+README.md
+DISTRIBUTION_GUIDE.md
+install_web.sh
+.DS_Store

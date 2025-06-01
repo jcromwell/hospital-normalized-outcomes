@@ -325,10 +325,51 @@ def load_data():
         df['Normalized ALOS'] = df['ALOS'] / df['CMI']
         df['Normalized Readmission Rate'] = df['Readmission Rate'] / df['CMI']
         
+        # Fix Arrow serialization issues by ensuring consistent data types
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                # Convert object columns to string, handling mixed types
+                df[col] = df[col].astype(str)
+                # Replace 'nan' strings with empty strings for cleaner display
+                df[col] = df[col].replace('nan', '')
+            elif df[col].dtype in ['int64', 'float64']:
+                # Ensure numeric columns don't have mixed types
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        
         return df
     else:
         st.error(f"Data file '{data_file}' not found in current directory")
         return None
+
+def make_arrow_compatible(df):
+    """Make DataFrame compatible with Arrow serialization for Streamlit display"""
+    if df is None or df.empty:
+        return df
+    
+    df_copy = df.copy()
+    
+    # Convert all object columns to string and handle mixed types
+    for col in df_copy.columns:
+        if df_copy[col].dtype == 'object':
+            # Convert to string, handling None/NaN values
+            df_copy[col] = df_copy[col].astype(str)
+            # Clean up 'None' and 'nan' strings
+            df_copy[col] = df_copy[col].replace(['None', 'nan', '<NA>'], '')
+        elif df_copy[col].dtype in ['int64', 'float64']:
+            # Ensure numeric columns don't have object mixed in
+            df_copy[col] = pd.to_numeric(df_copy[col], errors='coerce')
+    
+    # Remove any columns that are still problematic
+    for col in df_copy.columns:
+        try:
+            # Test Arrow conversion on individual column
+            import pyarrow as pa
+            pa.array(df_copy[col])
+        except Exception:
+            # If column still fails, convert to string
+            df_copy[col] = df_copy[col].astype(str).replace(['None', 'nan', '<NA>'], '')
+    
+    return df_copy
 
 def get_hospital_display_name(row):
     """Create a display name for hospitals"""
@@ -594,7 +635,7 @@ def display_summary_stats(index_data, comparator_data):
                 # Display hospital info as table
                 info_df = pd.DataFrame([info_data]).T
                 info_df.columns = ['']
-                st.table(info_df)
+                st.table(make_arrow_compatible(info_df))
                 
                 # Metrics table
                 st.write("**Key Metrics**")
@@ -613,7 +654,7 @@ def display_summary_stats(index_data, comparator_data):
                 if metrics_data:
                     metrics_df = pd.DataFrame([metrics_data]).T
                     metrics_df.columns = ['Value']
-                    st.table(metrics_df)
+                    st.table(make_arrow_compatible(metrics_df))
             else:
                 # IDN aggregate data
                 st.write(f"**IDN:** {index_data.iloc[0]['IDN']}")
@@ -632,7 +673,7 @@ def display_summary_stats(index_data, comparator_data):
                 if metrics_data:
                     metrics_df = pd.DataFrame([metrics_data]).T
                     metrics_df.columns = ['Value']
-                    st.table(metrics_df)
+                    st.table(make_arrow_compatible(metrics_df))
     
     with col2:
         st.subheader("📈 Comparator Group")
@@ -665,7 +706,7 @@ def display_summary_stats(index_data, comparator_data):
         if dist_data:
             dist_df = pd.DataFrame(dist_data)
             dist_df = dist_df.set_index('Metric')
-            st.table(dist_df)
+            st.table(make_arrow_compatible(dist_df))
 
 def main():
     # Add logo in sidebar with centered styling and reduced padding
@@ -1056,7 +1097,7 @@ def main():
                     lambda x: f"{x:.2f}" if pd.notna(x) else "N/A"
                 )
         
-        st.table(formatted_data)
+        st.table(make_arrow_compatible(formatted_data))
         
         # Export functionality with enhanced header
         st.markdown("""
