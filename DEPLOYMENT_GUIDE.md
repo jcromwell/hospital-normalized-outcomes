@@ -2,6 +2,25 @@
 
 This guide will walk you through containerizing your Streamlit app and deploying it to AWS, even if you're new to Docker and AWS.
 
+## 🚀 Quick Access
+
+**Your Live Application:** https://hospital-reports.tauspan.com
+
+**Key Management Commands:**
+```bash
+# Check app status
+aws ecs describe-services --cluster hospital-analyzer-cluster --services hospital-analyzer-service --region us-east-1
+
+# View logs
+aws logs tail /ecs/hospital-analyzer --follow --region us-east-1
+
+# Stop app (save costs)
+aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-analyzer-service --desired-count 0 --region us-east-1
+
+# Restart app
+aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-analyzer-service --desired-count 1 --region us-east-1
+```
+
 ## Prerequisites
 
 Before starting, you'll need:
@@ -220,12 +239,15 @@ This does steps 2-3 automatically. Stop with `Ctrl+C`.
 ## Part 5: Managing Your Deployment
 
 ### Your Deployment Details
-- **Application URL:** http://hospital-analyzer-alb-302978426.us-east-1.elb.amazonaws.com
+- **Application URL:** https://hospital-reports.tauspan.com
+- **Load Balancer URL:** hospital-analyzer-alb-302978426.us-east-1.elb.amazonaws.com
 - **AWS Region:** us-east-1
 - **ECS Cluster:** hospital-analyzer-cluster
 - **ECS Service:** hospital-analyzer-service
 - **Load Balancer:** hospital-analyzer-alb
 - **ECR Repository:** 157892191819.dkr.ecr.us-east-1.amazonaws.com/hospital-analyzer
+- **Route 53 Hosted Zone:** hospital-reports.tauspan.com (Z0636628A3JUA8NHSEJ8)
+- **SSL Certificate:** arn:aws:acm:us-east-1:157892191819:certificate/e3badbd5-c83e-4bb3-8a87-da2a1a06b2b1
 
 ### Daily Management Commands
 
@@ -291,21 +313,121 @@ aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-an
 ### Monitoring and Costs
 
 #### Monitor Costs:
+
+**Expected Monthly Costs:**
+- **24/7 Operation:** $35-50/month
+- **Business Hours Only:** $15-25/month (60% savings)
+- **Weekends Off:** $25-35/month (30% savings)
+
+**Cost Breakdown:**
+- **ECS Fargate:** $15-25/month (0.25 vCPU, 0.5GB RAM)
+- **Application Load Balancer:** $18/month (fixed cost)
+- **Route 53 Hosted Zone:** $0.50/month
+- **SSL Certificate:** FREE (AWS Certificate Manager)
+- **ECR Storage:** ~$1/month
+- **CloudWatch Logs:** ~$1-3/month
+
+**Quick Cost Monitoring:**
 ```bash
-# View current month's costs for ECS
+# Run cost monitoring script (included in repository)
+./monitor-costs.sh
+
+# View current month's costs
 aws ce get-cost-and-usage \
-  --time-period Start=2025-06-01,End=2025-06-30 \
+  --time-period Start=$(date +%Y-%m-01),End=$(date +%Y-%m-%d) \
   --granularity MONTHLY \
   --metrics BlendedCost \
   --group-by Type=DIMENSION,Key=SERVICE \
   --region us-east-1
+
+# Service-specific costs
+aws ce get-cost-and-usage \
+  --time-period Start=$(date +%Y-%m-01),End=$(date +%Y-%m-%d) \
+  --granularity MONTHLY \
+  --metrics BlendedCost \
+  --filter '{"Dimensions":{"Key":"SERVICE","Values":["Amazon Elastic Container Service","Amazon Elastic Load Balancing"]}}' \
+  --region us-east-1
 ```
 
-#### Cost Optimization Tips:
+#### Set Up Cost Alerts:
+
+**Billing Alerts (Already Configured):**
+- **$50 Monthly Alert:** Email notification when bill exceeds $50
+- **Budget Alerts:** 80% and 100% of monthly budget notifications
+- **Email:** jcromwell@tauspan.com (confirm SNS subscription)
+
+**Manual Setup for Other Users:**
+```bash
+# Create SNS topic for billing alerts
+aws sns create-topic --name billing-alerts --region us-east-1
+
+# Subscribe email to alerts (replace email)
+aws sns subscribe --topic-arn arn:aws:sns:us-east-1:YOUR_ACCOUNT:billing-alerts --protocol email --notification-endpoint your-email@domain.com --region us-east-1
+
+# Create billing alarm
+aws cloudwatch put-metric-alarm \
+  --alarm-name "AWS-Billing-Alert-50USD" \
+  --alarm-description "Alert when AWS bill exceeds $50" \
+  --metric-name EstimatedCharges \
+  --namespace AWS/Billing \
+  --statistic Maximum \
+  --period 86400 \
+  --threshold 50 \
+  --comparison-operator GreaterThanThreshold \
+  --dimensions Name=Currency,Value=USD \
+  --evaluation-periods 1 \
+  --alarm-actions arn:aws:sns:us-east-1:YOUR_ACCOUNT:billing-alerts \
+  --region us-east-1
+
+# Create monthly budget
+aws budgets create-budget --account-id YOUR_ACCOUNT_ID --budget '{
+  "BudgetName": "Hospital-Analyzer-Monthly-Budget",
+  "BudgetLimit": {"Amount": "50", "Unit": "USD"},
+  "TimeUnit": "MONTHLY",
+  "BudgetType": "COST"
+}' --notifications-with-subscribers '[{
+  "Notification": {
+    "NotificationType": "ACTUAL",
+    "ComparisonOperator": "GREATER_THAN",
+    "Threshold": 80,
+    "ThresholdType": "PERCENTAGE"
+  },
+  "Subscribers": [{"SubscriptionType": "EMAIL", "Address": "your-email@domain.com"}]
+}]' --region us-east-1
+```
+
+#### Cost Optimization Strategies:
+
+**Immediate Savings:**
+```bash
+# Stop during off-hours (saves ~60% of ECS costs)
+aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-analyzer-service --desired-count 0 --region us-east-1
+
+# Restart when needed
+aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-analyzer-service --desired-count 1 --region us-east-1
+```
+
+**Automated Scheduling:**
+Add to your system crontab for automatic start/stop:
+```bash
+# Stop at 10 PM weekdays (saves ~$1-2/day)
+0 22 * * 1-5 aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-analyzer-service --desired-count 0 --region us-east-1
+
+# Start at 8 AM weekdays
+0 8 * * 1-5 aws ecs update-service --cluster hospital-analyzer-cluster --service hospital-analyzer-service --desired-count 1 --region us-east-1
+```
+
+**Resource Right-Sizing:**
+- Current: 256 CPU, 512 MB RAM
+- Could reduce to: 256 CPU, 256 MB RAM (saves ~25% on ECS costs)
+- Monitor CPU/memory usage before downsizing
+
+#### Additional Cost Tips:
 - **Stop when not needed:** Scale to 0 during non-business hours
-- **Use smaller instance sizes:** Current setup uses 256 CPU / 512 MB memory
-- **Monitor usage:** Check CloudWatch metrics regularly
-- **Set billing alerts:** Configure AWS billing alerts for cost control
+- **Monitor usage:** Check CloudWatch metrics regularly  
+- **Load Balancer:** Fixed cost but necessary for HTTPS and reliability
+- **Route 53:** Minimal cost ($0.50/month) for professional domain
+- **Delete unused resources:** Remove old task definitions, unused ECR images
 
 #### Performance Monitoring:
 ```bash
@@ -373,6 +495,12 @@ aws ecs delete-service --cluster hospital-analyzer-cluster --service hospital-an
 aws elbv2 delete-load-balancer --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:157892191819:loadbalancer/app/hospital-analyzer-alb/c49b354691860a83 --region us-east-1
 aws elbv2 delete-target-group --target-group-arn arn:aws:elasticloadbalancing:us-east-1:157892191819:targetgroup/hospital-analyzer-targets/235d89c82405da99 --region us-east-1
 
+# Delete SSL certificate (optional - it's free to keep)
+aws acm delete-certificate --certificate-arn arn:aws:acm:us-east-1:157892191819:certificate/e3badbd5-c83e-4bb3-8a87-da2a1a06b2b1 --region us-east-1
+
+# Delete Route 53 hosted zone (optional - small monthly cost)
+aws route53 delete-hosted-zone --id Z0636628A3JUA8NHSEJ8 --region us-east-1
+
 # Delete security groups
 aws ec2 delete-security-group --group-id sg-0c9ee7ca971705a76 --region us-east-1
 aws ec2 delete-security-group --group-id sg-0f7fb9dd2eeebb016 --region us-east-1
@@ -382,6 +510,8 @@ aws ecs delete-cluster --cluster hospital-analyzer-cluster --region us-east-1
 aws ecr delete-repository --repository-name hospital-analyzer --force --region us-east-1
 aws logs delete-log-group --log-group-name /ecs/hospital-analyzer --region us-east-1
 aws iam delete-role --role-name ecsTaskExecutionRole --region us-east-1
+
+# Remember to remove NS records from GoDaddy manually
 ```
 
 ## Troubleshooting
@@ -405,62 +535,52 @@ aws iam delete-role --role-name ecsTaskExecutionRole --region us-east-1
 - Docker documentation at docs.docker.com
 - Check AWS CloudWatch logs for errors
 
-## Part 6: Adding HTTPS/SSL (Optional)
+## Part 6: HTTPS/SSL Configuration (Already Implemented)
 
-### Prerequisites for HTTPS:
-- A custom domain name (e.g., myapp.example.com)
-- Access to DNS settings for the domain
+Your deployment includes a complete HTTPS setup with:
 
-### Step 1: Request SSL Certificate
+### Current SSL Configuration:
+- **Domain:** hospital-reports.tauspan.com
+- **SSL Certificate:** AWS Certificate Manager (auto-renewing)
+- **DNS Management:** Route 53 hosted zone
+- **HTTP Redirect:** Automatic redirect to HTTPS
+
+### SSL Certificate Management:
 ```bash
-# Request certificate for your domain
+# Check certificate status
+aws acm describe-certificate \
+  --certificate-arn arn:aws:acm:us-east-1:157892191819:certificate/e3badbd5-c83e-4bb3-8a87-da2a1a06b2b1 \
+  --region us-east-1
+
+# List all certificates
+aws acm list-certificates --region us-east-1
+```
+
+### DNS Management (Route 53):
+```bash
+# View DNS records
+aws route53 list-resource-record-sets \
+  --hosted-zone-id Z0636628A3JUA8NHSEJ8 \
+  --region us-east-1
+
+# Add additional A records (if needed)
+aws route53 change-resource-record-sets \
+  --hosted-zone-id Z0636628A3JUA8NHSEJ8 \
+  --change-batch file://dns-changes.json \
+  --region us-east-1
+```
+
+### Load Balancer Listeners:
+- **Port 80 (HTTP):** Redirects to HTTPS (301 permanent redirect)
+- **Port 443 (HTTPS):** Serves application with SSL certificate
+
+### Adding Additional Domains (Future):
+To add more subdomains to the same certificate:
+```bash
+# Request certificate with multiple domains
 aws acm request-certificate \
-  --domain-name yourdomain.com \
+  --domain-name hospital-reports.tauspan.com \
+  --subject-alternative-names additional-subdomain.tauspan.com \
   --validation-method DNS \
   --region us-east-1
-
-# Note the certificate ARN from the output
 ```
-
-### Step 2: Validate Certificate
-1. Go to AWS Certificate Manager in the console
-2. Find your certificate and click "Create record in Route 53" (if using Route 53)
-3. Or manually add the CNAME record to your DNS provider
-4. Wait for validation to complete (can take 5-30 minutes)
-
-### Step 3: Add HTTPS Listener to Load Balancer
-```bash
-# Replace CERT_ARN with your certificate ARN
-CERT_ARN="arn:aws:acm:us-east-1:YOUR_ACCOUNT:certificate/YOUR_CERT_ID"
-ALB_ARN="arn:aws:elasticloadbalancing:us-east-1:157892191819:loadbalancer/app/hospital-analyzer-alb/c49b354691860a83"
-TARGET_GROUP_ARN="arn:aws:elasticloadbalancing:us-east-1:157892191819:targetgroup/hospital-analyzer-targets/235d89c82405da99"
-
-aws elbv2 create-listener \
-  --load-balancer-arn $ALB_ARN \
-  --protocol HTTPS \
-  --port 443 \
-  --certificates CertificateArn=$CERT_ARN \
-  --default-actions Type=forward,TargetGroupArn=$TARGET_GROUP_ARN \
-  --region us-east-1
-```
-
-### Step 4: Redirect HTTP to HTTPS (Optional)
-```bash
-# Get the HTTP listener ARN
-HTTP_LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query 'Listeners[?Port==`80`].ListenerArn' --output text --region us-east-1)
-
-# Modify HTTP listener to redirect to HTTPS
-aws elbv2 modify-listener \
-  --listener-arn $HTTP_LISTENER_ARN \
-  --default-actions Type=redirect,RedirectConfig='{Protocol=HTTPS,Port=443,StatusCode=HTTP_301}' \
-  --region us-east-1
-```
-
-### Step 5: Update DNS
-Point your domain's A record to the load balancer:
-- **Target:** hospital-analyzer-alb-302978426.us-east-1.elb.amazonaws.com
-- **Type:** CNAME or A (with alias if using Route 53)
-
-After completing these steps, your app will be available at:
-- **HTTPS:** https://yourdomain.com
-- **HTTP:** Redirects to HTTPS
