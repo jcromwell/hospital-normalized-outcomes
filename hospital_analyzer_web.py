@@ -918,8 +918,8 @@ def main():
             st.info(f"📊 Showing all {len(scatter_data)} comparator hospitals with complete normalized data.")
         
         if not scatter_data.empty:
-            # Truncate hospital names for labels
-            scatter_data['Label'] = scatter_data['Hospital'].apply(lambda x: x[:20] + '...' if len(str(x)) > 20 else str(x))
+            # Use full hospital names for labels (increased from 20 characters)
+            scatter_data['Label'] = scatter_data['Hospital'].apply(lambda x: x[:50] + '...' if len(str(x)) > 50 else str(x))
             
             # Identify index hospital(s)
             if len(index_data) == 1:
@@ -948,9 +948,10 @@ def main():
                     ),
                     text=comparator_points['Label'],
                     textposition="top center",
-                    textfont=dict(size=9, color='#4B5563'),
+                    textfont=dict(size=10, color='#4B5563'),
                     name='Comparator Hospitals',
-                    hovertemplate='<b>%{text}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>'
+                    hovertemplate='<b>%{customdata}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>',
+                    customdata=comparator_points['Hospital']
                 ))
             
             # Add index hospital(s) - highlighted
@@ -968,9 +969,10 @@ def main():
                     ),
                     text=index_points['Label'],
                     textposition="top center",
-                    textfont=dict(size=12, color='#D97706', weight=600),
+                    textfont=dict(size=13, color='#D97706', weight=600),
                     name='Selected Hospital(s)',
-                    hovertemplate='<b>%{text}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>'
+                    hovertemplate='<b>%{customdata}</b><br>Normalized ALOS: %{x:.2f}<br>Normalized Readmission Rate: %{y:.1%}<extra></extra>',
+                    customdata=index_points['Hospital']
                 ))
             
             # Add reference lines for means
@@ -1044,7 +1046,7 @@ def main():
                     borderwidth=1,
                     font=dict(size=12)
                 ),
-                margin=dict(l=60, r=40, t=80, b=60)
+                margin=dict(l=60, r=60, t=100, b=80)
             )
             
             # Format y-axis as percentage
